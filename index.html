@@ -1,0 +1,245 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="jquery.mobile-1.4.4.min.css"/>
+<script src ="jquery-1.10.2.js"></script>
+<script src ="jquery.mobile-1.4.4.min.js"></script>
+<script src ="jquery.mobile-1.4.4.js"></script>
+<script type="text/javascript" src ="jquery.mobile-1.4.4.min.map"></script>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script> 
+<script>
+var geocoder;
+ 
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
+} 
+//Get the latitude and the longitude;
+function successFunction(position) {
+    var lat = position.coords.latitude;
+    var lng = position.coords.longitude;
+    codeLatLng(lat, lng)
+}
+ 
+function errorFunction(){
+    alert("Geocoder failed");
+}
+ 
+  function initialize() {
+    geocoder = new google.maps.Geocoder();
+  }
+ 
+  function codeLatLng(lat, lng) {
+ 
+    var latlng = new google.maps.LatLng(lat, lng);
+    geocoder.geocode({'latLng': latlng}, function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+      console.log(results)
+        if (results[1]) {
+         //formatted address
+         $('#delvry').val(results[0].formatted_address)
+        //find country name
+             for (var i=0; i<results[0].address_components.length; i++) {
+            for (var b=0;b<results[0].address_components[i].types.length;b++) {
+ 
+            //there are different types that might hold a city admin_area_lvl_1 usually does in come cases looking for sublocality type will be more appropriate
+                if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
+                    //this is the object you are looking for
+                    city= results[0].address_components[i];
+                    break;
+                }
+            }
+        }
+        } else {
+          $('#delvry').text("No results found");
+        }
+      } else {
+        $('#delvry').text("Geocoder failed due to: " + status);
+      }
+    });
+  }
+
+		function syncAjax(u){
+			console.log(u);
+				var obj=$.ajax(
+					{url:u,
+					 async:false
+					 }
+				);
+				console.log(obj.responseText);
+				return $.parseJSON(obj.responseText);
+				
+			}
+
+//function requestItem(){
+ $(document).ready(function(){
+  $('#buy_action').click(function() { 
+   var item = $('#mName').text();
+   var quantity = $("#qty").val();
+   var type = $("#sType").val();
+   var number = $("#num").val();
+   var location = $("#delvry").val();
+ r=syncAjax("dwaso_action.php?cmd=1&item="+item +"&quantity="+quantity+"&type="+type+"&number="+number+"&location="+location);
+$("#msg").text(r.message); 
+});
+
+$('#fruits').click(function() { 
+  r=syncAjax("dwaso_action.php?cmd=2");
+if(r.Fruits.length == 0){
+$("#fruits").html("Sorry, No fruit has been added");
+}
+ var x=1;
+ for (var i = 0; i < r.Fruits.length; i++) {
+var fruitContent='<div data-role="collapsible">'+
+   '<ul data-role="listview">'+
+   '<li id="'+r.Fruits[i].Name+'" onclick="order(\''+r.Fruits[i].Name+'\')"><a href ="#request" data-inline="true" data-mini="true" data-theme="a"><h1 align="center">'+ r.Fruits[i].Name+'</h1><span class="ui-li-count">'+r.Fruits[i].Price +'</span></a></li>'
+   '</ul></div>';
+  x++;
+$(fruitContent).appendTo('#showFruits').trigger('create');
+}
+ });
+
+$('#Vege').click(function() { 
+  r=syncAjax("dwaso_action.php?cmd=4");
+if(r.Vegetables.length == 0){
+$("#showVeg").html("Sorry, No vegetables has been added");
+}
+ var x=1;
+ for (var i = 0; i < r.Vegetables.length; i++) {
+var vegContent='<div data-role="collapsible">'+
+   '<ul data-role="listview">'+
+   '<li id="'+r.Vegetables[i].Name+'" onclick="order(\''+r.Vegetables[i].Name+'\')"><a href ="#request" data-inline="true" data-mini="true" data-theme="a"><h1 align="center">'+ r.Vegetables[i].Name+'</h1><span class="ui-li-count">'+r.Vegetables[i].Price +'</span></a></li>'
+   '</ul></div>';
+  x++;
+$(vegContent).appendTo('#showVeg').trigger('create');
+}
+ });
+
+$('#OtherCrops').click(function() { 
+  r=syncAjax("dwaso_action.php?cmd=5");
+if(r.Other_crops.length == 0){
+$("#showOtherCrops").html("Sorry, No other crops has been added");
+}
+ var x=1;
+ for (var i = 0; i < r.Other_crops.length; i++) {
+var OTContent='<div data-role="collapsible">'+
+   '<ul data-role="listview">'+
+   '<li id="'+r.Other_crops[i].Name+'" onclick="order(\''+r.Other_crops[i].Name+'\')"><a href ="#request" data-inline="true" data-mini="true" data-theme="a"><h1 align="center">'+ r.Other_crops[i].Name+'</h1><span class="ui-li-count">'+r.Other_crops[i].Price +'</span></a></li>'
+   '</ul></div>';
+  x++;
+$(OTContent).appendTo('#showOtherCrops').trigger('create');
+}
+ });
+    });
+
+
+function order(value){
+ $("#mName").text(value);
+  //alert(value);
+}
+  
+
+</script>
+<style>
+h3 {
+    text-shadow: 0 0 3px #FF0000;
+}
+h4 {
+    text-shadow: 2px 2px 8px #FF0000;
+}
+h5 {
+    color: white;
+    text-shadow: 2px 2px 4px #000000;
+}
+</style>
+
+</head>
+<body onload="initialize()">
+<!--UserMainPage-->
+<div data-role="page" id="home" data-theme="b">
+<div data-role="header" data-position="fixed">
+<p align="center" style='font-size:190%'><img src="images/DAF_logo.png" alt="Dwaso_abafie_logo" align="center" 
+	class="ui-btn-left" height="100" width="100"></img>Dwaso_AbaFie</p>
+</div>
+ 
+<div data-role="main" class="ui-content">
+  	<br></br>
+    <div align="center">
+<h3 text-align="center">Dwaso_abafie brings market to your doorstep. Purchase all your foodstuff with just a click and it will be delivered to you. No need to go through the hassle of having to go to the market.</h3>
+<h4> Click below to find a list of foodstuffs that are avaliable to you.</h4>
+  <h5>Happy Shopping!</h5></div>
+<BR></BR>
+  
+  <div data-role="collapsibleset" data-theme="b" data-content-theme="b">
+<div data-role="collapsible">
+<h3>FRUITS</h3>
+<input id="fruits" type="submit" value="View" data-iconpos="right" >
+<br></br>
+<div id="showFruits"></div>
+</div>
+
+<div data-role="collapsible">
+	<h3>VEGETABLES</h3>
+  <input id="Vege" type="submit" value="View" data-iconpos="right" >
+<br></br>
+<div id="showVeg"></div>  
+</div>
+
+<div data-role="collapsible">
+	 <h3>OTHER-CROPS</h3>
+   <input id="OtherCrops" type="submit" value="View" data-iconpos="right" >
+<br></br>
+<div id="showOtherCrops"></div>        
+	</div>
+
+  </div>  
+
+<!--EndContent-->
+</div>
+
+ <div data-role="footer">
+    <h1>Deveoped by deeaba</h1>
+ </div>
+
+<!--EndPage-->
+</div>
+
+
+<!--SecondPage-->
+<div data-role="page" id="request" data-theme="b">
+
+  <div data-role="header" data-position="fixed">
+<p align="center" style='font-size:190%'><img src="images/DAF_logo.png" alt="Dwaso_abafie_logo" align="center" 
+	class="ui-btn-left" height="100" width="100"></img>Dwaso_AbaFie</p>
+</div>
+
+
+  <div data-role="main" class="ui-content">
+  	<form method="post" action="">
+  		<label for="Iname"><b>Item:</b></label>
+  		<div id ="mName" align="center" style='font-size:190%'></div>
+  		<div class="ui-field-contain">
+  <label for="Qname"><b>Quantity:</b></label>
+  <input type="text" name="Qname" id="qty" placeholder="3">
+  <label for="ST"><b>Specific Type:</b></label>
+  <input type="text" name="ST" id="sType" placeholder="eg: Soft">
+  <label for="ST"><b>Number:</b></label>
+  <input type="text" name="num" id="num" placeholder="0233333333">
+  <lable><b>Please re-enter if that is not your location:</b></label>
+  <input type="text" name="delivery" id="delvry">
+  <div id="show"></div>
+</div>
+<input id="buy_action" type="submit" value="BUY" data-iconpos="right" >
+<div id="msg"></div>
+  </div>
+  </form>
+
+  <div data-role="footer">
+    <div data-role="navbar">
+  <ul>  
+  <li><a href="#home" data-transition="flip" data-icon="home">Home</a></li>
+  <li><a  href="#request" data-transition="flip" data-icon="carat-d" class="ui-btn-active ui-disabled">Order</a></li></ul>
+</div> 
+  </div>
+
+</div>
+</body>
+</html>
